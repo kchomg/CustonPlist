@@ -39,8 +39,11 @@ class ListViewController: UITableViewController, UIPickerViewDelegate, UIPickerV
         done.target = self
         done.action = #selector(pickerDone)
         
+        // 가변 폭 버튼 정의
+        let flexSpace = UIBarButtonItem(barButtonSystemItem: .flexibleSpace, target: nil, action: nil)
+        
         // 버튼을 툴 바에 추가
-        toolbar.setItems([done], animated: true)
+        toolbar.setItems([flexSpace, done], animated: true) // 툴 바에서 버튼의 배치 순서는 입력된 순서를 따르기 때문에 순서가 바뀌면 안된다.
     }
     
     func numberOfComponents(in pickerView: UIPickerView) -> Int {
