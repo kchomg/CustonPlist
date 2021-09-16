@@ -9,6 +9,9 @@ import UIKit
 
 class ListViewController: UITableViewController, UIPickerViewDelegate, UIPickerViewDataSource {
     @IBOutlet weak var account: UITextField!
+    @IBOutlet weak var name: UILabel!
+    @IBOutlet weak var gender: UISegmentedControl!
+    @IBOutlet weak var married: UISwitch!
     
     var accountlist = [String]()
     
@@ -45,6 +48,14 @@ class ListViewController: UITableViewController, UIPickerViewDelegate, UIPickerV
         
         // 버튼을 툴 바에 추가
         toolbar.setItems([new, flexSpace, done], animated: true) // 툴 바에서 버튼의 배치 순서는 입력된 순서를 따르기 때문에 순서가 바뀌면 안된다.
+        
+        // 기본 저장소 객체 불러오기
+        let plist = UserDefaults.standard
+        
+        // 불러온 값을 설정
+        self.name.text = plist.string(forKey: "name")
+        self.married.isOn = plist.bool(forKey: "married")
+        self.gender.selectedSegmentIndex = plist.integer(forKey: "gender")
     }
     
     func numberOfComponents(in pickerView: UIPickerView) -> Int {
@@ -82,9 +93,48 @@ class ListViewController: UITableViewController, UIPickerViewDelegate, UIPickerV
             if let account = alert.textFields?[0].text {
                 self.accountlist.append(account) // 계정 목록 배열에 추가한다.
                 self.account.text = account // 계정 텍스트 필드에 표시한다.
+                
+                // 컨트롤 값을 모두 초기화한다.
+                self.name.text = ""
+                self.gender.selectedSegmentIndex = 0
+                self.married.isOn = false
             }
         }))
         
         self.present(alert, animated: false, completion: nil)
+    }
+    
+    @IBAction func changeGender(_ sender: UISegmentedControl) {
+        let value = sender.selectedSegmentIndex
+        let plist = UserDefaults.standard
+        plist.set(value, forKey: "gender")
+        plist.synchronize()
+    }
+    @IBAction func changedMarried(_ sender: UISwitch) {
+        let value = sender.isOn
+        let plist = UserDefaults.standard
+        plist.set(value, forKey: "married")
+        plist.synchronize()
+    }
+    
+    override func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
+        if indexPath.row == 1 {
+            let alert = UIAlertController(title: nil, message: "이름을 입력하세요", preferredStyle: .alert)
+            
+            alert.addTextField { UITextField in
+                UITextField.text = self.name.text
+            }
+            
+            alert.addAction(UIAlertAction(title: "OK", style: .default, handler: { (_) in
+                let value = alert.textFields?[0].text
+                let plist = UserDefaults.standard
+                plist.setValue(value, forKey: "name")
+                plist.synchronize()
+                
+                self.name.text = value
+            }))
+            
+            self.present(alert, animated: false, completion: nil)
+        }
     }
 }
