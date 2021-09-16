@@ -10,12 +10,7 @@ import UIKit
 class ListViewController: UITableViewController, UIPickerViewDelegate, UIPickerViewDataSource {
     @IBOutlet weak var account: UITextField!
     
-    var accountlist = ["sqlpro@naver.com",
-                       "webmaster@rubypaper.co.kr",
-                       "abc1@gmail.com",
-                       "abc2@gmail.com",
-                       "abc3@gmail.com"
-    ]
+    var accountlist = [String]()
     
     override func viewDidLoad() {
         let picker = UIPickerView()
@@ -42,8 +37,14 @@ class ListViewController: UITableViewController, UIPickerViewDelegate, UIPickerV
         // 가변 폭 버튼 정의
         let flexSpace = UIBarButtonItem(barButtonSystemItem: .flexibleSpace, target: nil, action: nil)
         
+        // 신규 계정 등록 버튼
+        let new = UIBarButtonItem()
+        new.title = "NEW"
+        new.target = self
+        new.action = #selector(newAccount(_:))
+        
         // 버튼을 툴 바에 추가
-        toolbar.setItems([flexSpace, done], animated: true) // 툴 바에서 버튼의 배치 순서는 입력된 순서를 따르기 때문에 순서가 바뀌면 안된다.
+        toolbar.setItems([new, flexSpace, done], animated: true) // 툴 바에서 버튼의 배치 순서는 입력된 순서를 따르기 때문에 순서가 바뀌면 안된다.
     }
     
     func numberOfComponents(in pickerView: UIPickerView) -> Int {
@@ -66,5 +67,24 @@ class ListViewController: UITableViewController, UIPickerViewDelegate, UIPickerV
     
     @objc func pickerDone(_ sender: Any) {
         self.view.endEditing(true)
+    }
+    
+    @objc func newAccount(_ sender: Any) {
+        self.view.endEditing(true) // 열려있는 입력용 뷰부터 닫아준다.
+        
+        let alert = UIAlertController(title: "새 계정을 입력하세요.", message: nil, preferredStyle: .alert)
+        
+        alert.addTextField { UITextField in
+            UITextField.placeholder = "ex) abc@gmail.com"
+        }
+        
+        alert.addAction(UIAlertAction(title: "OK", style: .default, handler: { (_) in
+            if let account = alert.textFields?[0].text {
+                self.accountlist.append(account) // 계정 목록 배열에 추가한다.
+                self.account.text = account // 계정 텍스트 필드에 표시한다.
+            }
+        }))
+        
+        self.present(alert, animated: false, completion: nil)
     }
 }
