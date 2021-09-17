@@ -74,6 +74,17 @@ class ListViewController: UITableViewController, UIPickerViewDelegate, UIPickerV
             self.gender.selectedSegmentIndex = data?["gender"] as? Int ?? 0
             self.married.isOn = data?["married"] as? Bool ?? false
         }
+        
+        // 사용자 계정의 값이 비어 있다면 값을 설정하는 것을 막는다.
+        if (self.account.text?.isEmpty)! {
+            self.account.placeholder = "등록된 계정이 없습니다."
+            self.gender.isEnabled = false
+            self.married.isEnabled = false
+        }
+        
+        // 내비게이션 바에 newAccount 메소드와 연결된 버튼을 추가한다.
+        let addBtn = UIBarButtonItem(barButtonSystemItem: .add, target: self, action: #selector(newAccount(_:)))
+        self.navigationItem.rightBarButtonItem = addBtn
     }
     
     func numberOfComponents(in pickerView: UIPickerView) -> Int {
@@ -140,6 +151,10 @@ class ListViewController: UITableViewController, UIPickerViewDelegate, UIPickerV
                 plist.set(self.accountlist, forKey: "accountlist")
                 plist.set(account, forKey: "selectedAccount")
                 plist.synchronize()
+                
+                // 입력 항목을 활성화 한다.
+                self.gender.isEnabled = true
+                self.married.isEnabled = true
             }
         }))
         
@@ -178,7 +193,7 @@ class ListViewController: UITableViewController, UIPickerViewDelegate, UIPickerV
     }
     
     override func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
-        if indexPath.row == 1 {
+        if indexPath.row == 1 && (self.account.text?.isEmpty)! == false {
             let alert = UIAlertController(title: nil, message: "이름을 입력하세요", preferredStyle: .alert)
             
             alert.addTextField { UITextField in
