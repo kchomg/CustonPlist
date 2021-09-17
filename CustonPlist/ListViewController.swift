@@ -63,6 +63,16 @@ class ListViewController: UITableViewController, UIPickerViewDelegate, UIPickerV
         
         if let account = plist.string(forKey: "selectedAccount") {
             self.account.text = account
+            // 저장된 프로퍼티 파일을 꺼내 화면에 값을 표시
+            let customPlist = "\(account).plist"
+            let paths = NSSearchPathForDirectoriesInDomains(.documentDirectory, .userDomainMask, true)
+            let path = paths[0] as NSString
+            let clist = path.strings(byAppendingPaths: [customPlist]).first!
+            let data = NSDictionary(contentsOfFile: clist) // 데이터를 읽기만 하면 되기 때문에 굳이 NSMutableDicitionary를 사용할 필요가 없다.
+            
+            self.name.text = data?["name"] as? String
+            self.gender.selectedSegmentIndex = data?["gender"] as? Int ?? 0
+            self.married.isOn = data?["married"] as? Bool ?? false
         }
     }
     
@@ -91,6 +101,19 @@ class ListViewController: UITableViewController, UIPickerViewDelegate, UIPickerV
     
     @objc func pickerDone(_ sender: Any) {
         self.view.endEditing(true)
+        
+        // 선택된 계정에 대한 커스텀 프로퍼티 파일을 읽어와 세팅한다.
+        if let _account = self.account.text {
+            let customPlist = "\(_account).plist"
+            let paths = NSSearchPathForDirectoriesInDomains(.documentDirectory, .userDomainMask, true)
+            let path = paths[0] as NSString
+            let clist = path.strings(byAppendingPaths: [customPlist]).first!
+            let data = NSDictionary(contentsOfFile: clist)
+            
+            self.name.text = data?["name"] as? String
+            self.gender.selectedSegmentIndex = data?["gender"] as? Int ?? 0
+            self.married.isOn = data?["married"] as? Bool ?? false
+        }
     }
     
     @objc func newAccount(_ sender: Any) {
@@ -125,15 +148,33 @@ class ListViewController: UITableViewController, UIPickerViewDelegate, UIPickerV
     
     @IBAction func changeGender(_ sender: UISegmentedControl) {
         let value = sender.selectedSegmentIndex
-        let plist = UserDefaults.standard
-        plist.set(value, forKey: "gender")
-        plist.synchronize()
+        
+        // 저장 로직 시작
+        let customPlist = "\(self.account.text!).plist"
+        let paths = NSSearchPathForDirectoriesInDomains(.documentDirectory, .userDomainMask, true)
+        let path = paths[0] as NSString
+        let plist = path.strings(byAppendingPaths: [customPlist]).first!
+        let data = NSMutableDictionary(contentsOfFile: plist) ?? NSMutableDictionary()
+        
+        data.setValue(value, forKey: "gender")
+        data.write(toFile: plist, atomically: true)
     }
+    
     @IBAction func changedMarried(_ sender: UISwitch) {
         let value = sender.isOn
-        let plist = UserDefaults.standard
-        plist.set(value, forKey: "married")
-        plist.synchronize()
+        
+        // 저장 로직 시작
+        let customPlist = "\(self.account.text!).plist"
+        let paths = NSSearchPathForDirectoriesInDomains(.documentDirectory, .userDomainMask, true)
+        let path = paths[0] as NSString
+        let plist = path.strings(byAppendingPaths: [customPlist]).first!
+        let data = NSMutableDictionary(contentsOfFile: plist) ?? NSMutableDictionary()
+        
+        data.setValue(value, forKey: "married")
+        data.write(toFile: plist, atomically: true)
+        
+        // 값이 제대로 저장되었는지 확인.
+        print("custom plist = \(plist)")
     }
     
     override func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
@@ -146,9 +187,16 @@ class ListViewController: UITableViewController, UIPickerViewDelegate, UIPickerV
             
             alert.addAction(UIAlertAction(title: "OK", style: .default, handler: { (_) in
                 let value = alert.textFields?[0].text
-                let plist = UserDefaults.standard
-                plist.setValue(value, forKey: "name")
-                plist.synchronize()
+                
+                // 저장 로직 시작
+                let customPlist = "\(self.account.text!).plist" // 읽어올 파일명
+                let paths = NSSearchPathForDirectoriesInDomains(.documentDirectory, .userDomainMask, true)
+                let path = paths[0] as NSString
+                let plist = path.strings(byAppendingPaths: [customPlist]).first! // 커스텀 프로퍼티 파일을 읽어온다.
+                let data = NSMutableDictionary(contentsOfFile: plist) ?? NSMutableDictionary() // 읽어온 파일을 딕셔너리 객체로 변환, 만약 파일이 없다면 새로운 딕셔너리 객체를 생성.
+                
+                data.setValue(value, forKey: "name")
+                data.write(toFile: plist, atomically: true)
                 
                 self.name.text = value
             }))
