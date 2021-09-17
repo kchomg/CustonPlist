@@ -15,7 +15,15 @@ class ListViewController: UITableViewController, UIPickerViewDelegate, UIPickerV
     
     var accountlist = [String]()
     
+    // 메인 번들에 정의된 Plist 내용을 저장할 딕셔너리
+    var defaultPlist: NSDictionary!
+    
     override func viewDidLoad() {
+        // 메인 번들에 UserInfo.plist가 포함되어 있으면 이를 읽어와 딕셔너리에 담는다.
+        if let defaultPlistPath = Bundle.main.path(forResource: "UserInfo" /* 대상 파일의 이름 */, ofType: "plist" /* 확장자 */) { // Bundle.main 속성은 앱의 메인 번들 리소스를 객체 형태로 제공.
+            self.defaultPlist = NSDictionary(contentsOfFile: defaultPlistPath)
+        }
+        
         let picker = UIPickerView()
         
         picker.delegate = self
@@ -169,7 +177,7 @@ class ListViewController: UITableViewController, UIPickerViewDelegate, UIPickerV
         let paths = NSSearchPathForDirectoriesInDomains(.documentDirectory, .userDomainMask, true)
         let path = paths[0] as NSString
         let plist = path.strings(byAppendingPaths: [customPlist]).first!
-        let data = NSMutableDictionary(contentsOfFile: plist) ?? NSMutableDictionary()
+        let data = NSMutableDictionary(contentsOfFile: plist) ?? NSMutableDictionary(dictionary: self.defaultPlist) // 저장된 파일이 없을 때 표준 템플릿 딕셔너리가 저장된 defaulPlsit를 사용
         
         data.setValue(value, forKey: "gender")
         data.write(toFile: plist, atomically: true)
@@ -183,7 +191,7 @@ class ListViewController: UITableViewController, UIPickerViewDelegate, UIPickerV
         let paths = NSSearchPathForDirectoriesInDomains(.documentDirectory, .userDomainMask, true)
         let path = paths[0] as NSString
         let plist = path.strings(byAppendingPaths: [customPlist]).first!
-        let data = NSMutableDictionary(contentsOfFile: plist) ?? NSMutableDictionary()
+        let data = NSMutableDictionary(contentsOfFile: plist) ?? NSMutableDictionary(dictionary: self.defaultPlist)
         
         data.setValue(value, forKey: "married")
         data.write(toFile: plist, atomically: true)
@@ -208,7 +216,7 @@ class ListViewController: UITableViewController, UIPickerViewDelegate, UIPickerV
                 let paths = NSSearchPathForDirectoriesInDomains(.documentDirectory, .userDomainMask, true)
                 let path = paths[0] as NSString
                 let plist = path.strings(byAppendingPaths: [customPlist]).first! // 커스텀 프로퍼티 파일을 읽어온다.
-                let data = NSMutableDictionary(contentsOfFile: plist) ?? NSMutableDictionary() // 읽어온 파일을 딕셔너리 객체로 변환, 만약 파일이 없다면 새로운 딕셔너리 객체를 생성.
+                let data = NSMutableDictionary(contentsOfFile: plist) ?? NSMutableDictionary(dictionary: self.defaultPlist) // 읽어온 파일을 딕셔너리 객체로 변환, 만약 파일이 없다면 새로운 딕셔너리 객체를 생성.
                 
                 data.setValue(value, forKey: "name")
                 data.write(toFile: plist, atomically: true)
